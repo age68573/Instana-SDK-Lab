@@ -3,11 +3,17 @@ package com.example.instana.lab.model;
 public class OrderResult {
 
     private String status;
+    private String operation;
+    private String httpMethod;
     private String orderId;
     private String customerId;
     private String scenario;
     private String paymentStatus;
     private String inventoryStatus;
+    private String fulfillmentStatus;
+    private String auditStatus;
+    private String riskStatus;
+    private String notificationStatus;
     private int queryRows;
     private long queryMillis;
     private long elapsedMillis;
@@ -21,6 +27,22 @@ public class OrderResult {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getOperation() {
+        return operation;
+    }
+
+    public void setOperation(String operation) {
+        this.operation = operation;
+    }
+
+    public String getHttpMethod() {
+        return httpMethod;
+    }
+
+    public void setHttpMethod(String httpMethod) {
+        this.httpMethod = httpMethod;
     }
 
     public String getOrderId() {
@@ -61,6 +83,38 @@ public class OrderResult {
 
     public void setInventoryStatus(String inventoryStatus) {
         this.inventoryStatus = inventoryStatus;
+    }
+
+    public String getFulfillmentStatus() {
+        return fulfillmentStatus;
+    }
+
+    public void setFulfillmentStatus(String fulfillmentStatus) {
+        this.fulfillmentStatus = fulfillmentStatus;
+    }
+
+    public String getAuditStatus() {
+        return auditStatus;
+    }
+
+    public void setAuditStatus(String auditStatus) {
+        this.auditStatus = auditStatus;
+    }
+
+    public String getRiskStatus() {
+        return riskStatus;
+    }
+
+    public void setRiskStatus(String riskStatus) {
+        this.riskStatus = riskStatus;
+    }
+
+    public String getNotificationStatus() {
+        return notificationStatus;
+    }
+
+    public void setNotificationStatus(String notificationStatus) {
+        this.notificationStatus = notificationStatus;
     }
 
     public int getQueryRows() {

@@ -6,6 +6,20 @@
     var elapsed = document.getElementById('elapsed');
     var query = document.getElementById('query');
     var trace = document.getElementById('trace');
+    var runButton = document.getElementById('runButton');
+    var methodBadge = document.getElementById('methodBadge');
+    var lastRequest = document.getElementById('lastRequest');
+    var operations = document.querySelectorAll('.operation');
+    var queueRows = document.querySelectorAll('tbody tr');
+    var selectedMethod = 'GET';
+    var selectedOperation = 'retrieve';
+
+    function apiBase() {
+        var path = window.location.pathname;
+        var nextSlash = path.indexOf('/', 1);
+        var context = nextSlash > -1 ? path.substring(0, nextSlash) : '';
+        return context + '/api';
+    }
 
     function setMetric(responseStatus, body) {
         httpStatus.textContent = String(responseStatus);
@@ -19,10 +33,15 @@
         output.textContent = JSON.stringify(body, null, 2);
     }
 
-    function apiBase() {
-        var path = window.location.pathname;
-        var context = path.substring(0, path.indexOf('/', 1));
-        return context + '/api';
+    function setOperation(button) {
+        for (var i = 0; i < operations.length; i++) {
+            operations[i].className = operations[i].className.replace(' active', '');
+        }
+        button.className += ' active';
+        selectedMethod = button.getAttribute('data-method');
+        selectedOperation = button.getAttribute('data-operation');
+        methodBadge.textContent = selectedMethod;
+        runButton.textContent = selectedMethod + ' ' + selectedOperation;
     }
 
     function checkHealth() {
@@ -40,16 +59,31 @@
             });
     }
 
+    for (var i = 0; i < operations.length; i++) {
+        operations[i].addEventListener('click', function () {
+            setOperation(this);
+        });
+    }
+
+    for (var j = 0; j < queueRows.length; j++) {
+        queueRows[j].addEventListener('click', function () {
+            document.getElementById('orderId').value = this.getAttribute('data-order');
+            document.getElementById('customerId').value = this.getAttribute('data-customer');
+        });
+    }
+
     form.addEventListener('submit', function (event) {
         event.preventDefault();
-        var button = form.querySelector('button');
-        var orderId = encodeURIComponent(document.getElementById('orderId').value);
-        var customerId = encodeURIComponent(document.getElementById('customerId').value);
+        var orderIdValue = document.getElementById('orderId').value;
+        var customerIdValue = document.getElementById('customerId').value;
+        var orderId = encodeURIComponent(orderIdValue);
+        var customerId = encodeURIComponent(customerIdValue);
         var scenario = encodeURIComponent(document.getElementById('scenario').value);
         var url = apiBase() + '/orders/' + orderId + '?customerId=' + customerId + '&scenario=' + scenario;
 
-        button.disabled = true;
-        fetch(url)
+        runButton.disabled = true;
+        lastRequest.textContent = selectedMethod + ' /orders/' + orderIdValue;
+        fetch(url, {method: selectedMethod})
             .then(function (response) {
                 return response.json().then(function (body) {
                     render(response.status, body);
@@ -59,9 +93,10 @@
                 render('ERR', {status: 'ERROR', message: error.message});
             })
             .then(function () {
-                button.disabled = false;
+                runButton.disabled = false;
             });
     });
 
     checkHealth();
+    runButton.textContent = selectedMethod + ' ' + selectedOperation;
 }());

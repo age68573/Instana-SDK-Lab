@@ -37,10 +37,28 @@ public class LabApiServlet extends HttpServlet {
             return;
         }
         if (path.startsWith("/orders/")) {
-            handleOrder(request, response, path.substring("/orders/".length()));
+            handleOrder(request, response, path.substring("/orders/".length()), "GET", "retrieve");
             return;
         }
         writeJson(response, HttpServletResponse.SC_NOT_FOUND, notFound(path));
+    }
+
+    @Override
+    @Span(value = "instana-sdk-lab.servlet.post", type = Span.Type.ENTRY, capturedStackFrames = 1)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        routeOrderMutation(request, response, "POST", "submit");
+    }
+
+    @Override
+    @Span(value = "instana-sdk-lab.servlet.put", type = Span.Type.ENTRY, capturedStackFrames = 1)
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        routeOrderMutation(request, response, "PUT", "approve");
+    }
+
+    @Override
+    @Span(value = "instana-sdk-lab.servlet.delete", type = Span.Type.ENTRY, capturedStackFrames = 1)
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        routeOrderMutation(request, response, "DELETE", "cancel");
     }
 
     private String root() {
@@ -64,6 +82,7 @@ public class LabApiServlet extends HttpServlet {
         body.put("scenarios", Scenario.names());
         body.put("defaultScenario", Scenario.NORMAL.getCode());
         body.put("example", "/api/orders/ORD-1001?customerId=CUST-88&scenario=slow-query");
+        body.put("methods", new String[]{"GET retrieve", "POST submit", "PUT approve", "DELETE cancel"});
         return JsonUtil.object(body);
     }
 
@@ -74,17 +93,30 @@ public class LabApiServlet extends HttpServlet {
         return JsonUtil.object(body);
     }
 
-    private void handleOrder(HttpServletRequest request, HttpServletResponse response, String orderId) throws IOException {
+    private void routeOrderMutation(HttpServletRequest request, HttpServletResponse response,
+                                    String httpMethod, String operation) throws IOException {
+        String path = request.getPathInfo();
+        if (path != null && path.startsWith("/orders/")) {
+            handleOrder(request, response, path.substring("/orders/".length()), httpMethod, operation);
+            return;
+        }
+        writeJson(response, HttpServletResponse.SC_NOT_FOUND, notFound(path));
+    }
+
+    private void handleOrder(HttpServletRequest request, HttpServletResponse response, String orderId,
+                             String httpMethod, String operation) throws IOException {
         long startedAt = System.currentTimeMillis();
         String customerId = valueOrDefault(request.getParameter("customerId"), "CUST-100");
         Scenario scenario = Scenario.fromCode(valueOrDefault(request.getParameter("scenario"), "normal"));
 
+        SpanSupport.annotate("http.method", httpMethod);
+        SpanSupport.annotate("order.operation", operation);
         SpanSupport.annotate("order.id", orderId);
         SpanSupport.annotate("customer.id", customerId);
         SpanSupport.annotate("scenario", scenario.getCode());
 
         try {
-            OrderResult result = orderService.handleOrder(orderId, customerId, scenario);
+            OrderResult result = executeOperation(httpMethod, orderId, customerId, scenario);
             result.setElapsedMillis(System.currentTimeMillis() - startedAt);
             result.setTraceActive(SpanSupport.isTracing());
             result.setTraceId(SpanSupport.traceId());
@@ -101,6 +133,19 @@ public class LabApiServlet extends HttpServlet {
             writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     error(orderId, customerId, scenario, "system", e));
         }
+    }
+
+    private OrderResult executeOperation(String httpMethod, String orderId, String customerId, Scenario scenario) {
+        if ("POST".equals(httpMethod)) {
+            return orderService.submitOrder(orderId, customerId, scenario);
+        }
+        if ("PUT".equals(httpMethod)) {
+            return orderService.approveOrder(orderId, customerId, scenario);
+        }
+        if ("DELETE".equals(httpMethod)) {
+            return orderService.cancelOrder(orderId, customerId, scenario);
+        }
+        return orderService.retrieveWorklist(orderId, customerId, scenario);
     }
 
     private String error(String orderId, String customerId, Scenario scenario, String errorType, Exception exception) {

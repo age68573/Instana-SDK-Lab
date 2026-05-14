@@ -7,39 +7,37 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<main class="app">
-    <section class="console">
-        <div class="header">
+<main class="shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <span class="brand-mark">IS</span>
             <div>
-                <h1>Instana SDK Lab</h1>
-                <p>Java 8 · JAX-RS · H2 JDBC · JBoss EAP WAR</p>
+                <h1>OrderOps</h1>
+                <p>Instana SDK Lab</p>
+            </div>
+        </div>
+        <nav>
+            <button class="nav-item active" type="button">Orders</button>
+            <button class="nav-item" type="button">Fulfillment</button>
+            <button class="nav-item" type="button">Risk Queue</button>
+            <button class="nav-item" type="button">Audit Trail</button>
+        </nav>
+        <div class="runtime">
+            <span>Runtime</span>
+            <strong>JBoss 8 · Java 17</strong>
+        </div>
+    </aside>
+
+    <section class="workspace">
+        <header class="topbar">
+            <div>
+                <h2>Order Command Center</h2>
+                <p>Run operational requests and inspect trace metadata.</p>
             </div>
             <div class="status" id="health">checking</div>
-        </div>
+        </header>
 
-        <form id="traceForm" class="form">
-            <label>
-                Order ID
-                <input id="orderId" value="ORD-1001" autocomplete="off">
-            </label>
-            <label>
-                Customer ID
-                <input id="customerId" value="CUST-88" autocomplete="off">
-            </label>
-            <label>
-                Scenario
-                <select id="scenario">
-                    <option value="normal">normal</option>
-                    <option value="slow-query">slow-query</option>
-                    <option value="business-error">business-error</option>
-                    <option value="system-error">system-error</option>
-                    <option value="random-error">random-error</option>
-                </select>
-            </label>
-            <button type="submit">Run Trace</button>
-        </form>
-
-        <div class="metrics">
+        <section class="summary">
             <div>
                 <span>HTTP</span>
                 <strong id="httpStatus">-</strong>
@@ -56,9 +54,105 @@
                 <span>Trace</span>
                 <strong id="trace">-</strong>
             </div>
-        </div>
+        </section>
 
-        <pre id="output">{}</pre>
+        <section class="content-grid">
+            <div class="panel operations">
+                <div class="panel-heading">
+                    <h3>Request Builder</h3>
+                    <span id="methodBadge">GET</span>
+                </div>
+
+                <form id="traceForm">
+                    <div class="field-grid">
+                        <label>
+                            Order ID
+                            <input id="orderId" value="ORD-1001" autocomplete="off">
+                        </label>
+                        <label>
+                            Customer ID
+                            <input id="customerId" value="CUST-88" autocomplete="off">
+                        </label>
+                        <label>
+                            Scenario
+                            <select id="scenario">
+                                <option value="normal">normal</option>
+                                <option value="slow-query">slow-query</option>
+                                <option value="business-error">business-error</option>
+                                <option value="system-error">system-error</option>
+                                <option value="random-error">random-error</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="operation-list">
+                        <button class="operation active" type="button" data-method="GET" data-operation="retrieve">
+                            <span>GET</span>
+                            <strong>Retrieve order workspace</strong>
+                        </button>
+                        <button class="operation" type="button" data-method="POST" data-operation="submit">
+                            <span>POST</span>
+                            <strong>Submit new order</strong>
+                        </button>
+                        <button class="operation" type="button" data-method="PUT" data-operation="approve">
+                            <span>PUT</span>
+                            <strong>Approve for fulfillment</strong>
+                        </button>
+                        <button class="operation" type="button" data-method="DELETE" data-operation="cancel">
+                            <span>DELETE</span>
+                            <strong>Cancel order</strong>
+                        </button>
+                    </div>
+
+                    <button id="runButton" class="primary-action" type="submit">Run Request</button>
+                </form>
+            </div>
+
+            <div class="panel queue">
+                <div class="panel-heading">
+                    <h3>Live Order Queue</h3>
+                    <span>Mock data</span>
+                </div>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Customer</th>
+                        <th>Status</th>
+                        <th>Risk</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr data-order="ORD-1001" data-customer="CUST-88">
+                        <td>ORD-1001</td>
+                        <td>CUST-88</td>
+                        <td><span class="pill paid">PAID</span></td>
+                        <td>Low</td>
+                    </tr>
+                    <tr data-order="ORD-1002" data-customer="CUST-99">
+                        <td>ORD-1002</td>
+                        <td>CUST-99</td>
+                        <td><span class="pill pending">PENDING</span></td>
+                        <td>Review</td>
+                    </tr>
+                    <tr data-order="ORD-1003" data-customer="CUST-77">
+                        <td>ORD-1003</td>
+                        <td>CUST-77</td>
+                        <td><span class="pill paid">PAID</span></td>
+                        <td>Low</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="panel response-panel">
+            <div class="panel-heading">
+                <h3>Response Payload</h3>
+                <span id="lastRequest">No request yet</span>
+            </div>
+            <pre id="output">{}</pre>
+        </section>
     </section>
 </main>
 <script src="app.js"></script>

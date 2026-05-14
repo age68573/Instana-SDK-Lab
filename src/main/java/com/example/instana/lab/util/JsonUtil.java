@@ -14,11 +14,17 @@ public final class JsonUtil {
         StringBuilder json = new StringBuilder();
         json.append('{');
         append(json, "status", result.getStatus()).append(',');
+        append(json, "operation", result.getOperation()).append(',');
+        append(json, "httpMethod", result.getHttpMethod()).append(',');
         append(json, "orderId", result.getOrderId()).append(',');
         append(json, "customerId", result.getCustomerId()).append(',');
         append(json, "scenario", result.getScenario()).append(',');
         append(json, "paymentStatus", result.getPaymentStatus()).append(',');
         append(json, "inventoryStatus", result.getInventoryStatus()).append(',');
+        append(json, "fulfillmentStatus", result.getFulfillmentStatus()).append(',');
+        append(json, "auditStatus", result.getAuditStatus()).append(',');
+        append(json, "riskStatus", result.getRiskStatus()).append(',');
+        append(json, "notificationStatus", result.getNotificationStatus()).append(',');
         append(json, "queryRows", result.getQueryRows()).append(',');
         append(json, "queryMillis", result.getQueryMillis()).append(',');
         append(json, "elapsedMillis", result.getElapsedMillis()).append(',');

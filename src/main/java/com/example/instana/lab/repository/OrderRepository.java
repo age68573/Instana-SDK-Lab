@@ -40,6 +40,12 @@ public class OrderRepository {
                                 "CUSTOMER_ID VARCHAR(64), " +
                                 "AMOUNT DECIMAL(10,2), " +
                                 "STATUS VARCHAR(32))");
+                        statement.execute("CREATE TABLE IF NOT EXISTS ORDER_AUDIT (" +
+                                "ID IDENTITY PRIMARY KEY, " +
+                                "ORDER_ID VARCHAR(64), " +
+                                "ACTION VARCHAR(64), " +
+                                "DETAIL VARCHAR(255), " +
+                                "CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
                         statement.execute("MERGE INTO ORDERS KEY(ORDER_ID) VALUES " +
                                 "('ORD-1001', 'CUST-88', 1299.00, 'PAID'), " +
                                 "('ORD-1002', 'CUST-99', 300.00, 'PENDING'), " +
@@ -56,6 +62,40 @@ public class OrderRepository {
             } catch (SQLException e) {
                 throw new IllegalStateException("Unable to initialize H2 database", e);
             }
+        }
+    }
+
+    @Span(value = "instana-sdk-lab.db.list-work-queue", type = Span.Type.EXIT)
+    public QueryResult listWorkQueue(@TagParam("scenario") Scenario scenario) {
+        initialize();
+        long startedAt = System.currentTimeMillis();
+        int rows = 0;
+        try {
+            Connection connection = openConnection();
+            try {
+                PreparedStatement statement = connection.prepareStatement(
+                        "SELECT ORDER_ID, CUSTOMER_ID, AMOUNT, STATUS FROM ORDERS ORDER BY ORDER_ID");
+                try {
+                    ResultSet resultSet = statement.executeQuery();
+                    try {
+                        while (resultSet.next()) {
+                            rows++;
+                        }
+                    } finally {
+                        resultSet.close();
+                    }
+                } finally {
+                    statement.close();
+                }
+            } finally {
+                connection.close();
+            }
+            if (scenario == Scenario.SLOW_QUERY) {
+                rows += runSlowJdbcWorkload();
+            }
+            return queryResult(rows, startedAt);
+        } catch (SQLException e) {
+            throw new IllegalStateException("Work queue query failed", e);
         }
     }
 
@@ -99,6 +139,100 @@ public class OrderRepository {
         } catch (SQLException e) {
             throw new IllegalStateException("Order query failed", e);
         }
+    }
+
+    @Span(value = "instana-sdk-lab.db.upsert-order", type = Span.Type.EXIT)
+    public QueryResult upsertOrder(@TagParam("order.id") String orderId,
+                                   @TagParam("customer.id") String customerId,
+                                   @TagParam("scenario") Scenario scenario) {
+        initialize();
+        long startedAt = System.currentTimeMillis();
+        try {
+            Connection connection = openConnection();
+            try {
+                PreparedStatement statement = connection.prepareStatement(
+                        "MERGE INTO ORDERS KEY(ORDER_ID) VALUES (?, ?, ?, ?)");
+                try {
+                    statement.setString(1, orderId);
+                    statement.setString(2, customerId);
+                    statement.setBigDecimal(3, new java.math.BigDecimal("560.00"));
+                    statement.setString(4, "SUBMITTED");
+                    int rows = statement.executeUpdate();
+                    return queryResult(rows, startedAt);
+                } finally {
+                    statement.close();
+                }
+            } finally {
+                connection.close();
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Order upsert failed", e);
+        }
+    }
+
+    @Span(value = "instana-sdk-lab.db.update-order-status", type = Span.Type.EXIT)
+    public QueryResult updateOrderStatus(@TagParam("order.id") String orderId,
+                                         @TagParam("scenario") Scenario scenario,
+                                         @TagParam("order.status") String status) {
+        initialize();
+        long startedAt = System.currentTimeMillis();
+        try {
+            Connection connection = openConnection();
+            try {
+                PreparedStatement statement = connection.prepareStatement(
+                        "UPDATE ORDERS SET STATUS = ? WHERE ORDER_ID = ?");
+                try {
+                    statement.setString(1, status);
+                    statement.setString(2, orderId);
+                    int rows = statement.executeUpdate();
+                    if (rows == 0) {
+                        throw new IllegalStateException("order " + orderId + " was not found");
+                    }
+                    return queryResult(rows, startedAt);
+                } finally {
+                    statement.close();
+                }
+            } finally {
+                connection.close();
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Order status update failed", e);
+        }
+    }
+
+    @Span(value = "instana-sdk-lab.db.insert-audit", type = Span.Type.EXIT)
+    public QueryResult insertAudit(@TagParam("order.id") String orderId,
+                                   @TagParam("order.action") String action,
+                                   String detail) {
+        initialize();
+        long startedAt = System.currentTimeMillis();
+        try {
+            Connection connection = openConnection();
+            try {
+                PreparedStatement statement = connection.prepareStatement(
+                        "INSERT INTO ORDER_AUDIT (ORDER_ID, ACTION, DETAIL) VALUES (?, ?, ?)");
+                try {
+                    statement.setString(1, orderId);
+                    statement.setString(2, action);
+                    statement.setString(3, detail);
+                    int rows = statement.executeUpdate();
+                    return queryResult(rows, startedAt);
+                } finally {
+                    statement.close();
+                }
+            } finally {
+                connection.close();
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Audit insert failed", e);
+        }
+    }
+
+    private QueryResult queryResult(int rows, long startedAt) {
+        long elapsed = System.currentTimeMillis() - startedAt;
+        SpanSupport.annotate("db.rows", String.valueOf(rows));
+        SpanSupport.annotate("db.elapsed_ms", String.valueOf(elapsed));
+        return new QueryResult(rows, elapsed);
     }
 
     private int runSlowJdbcWorkload() throws SQLException {
