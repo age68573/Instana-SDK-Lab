@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Instana SDK Lab</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="app">
+    <section class="console">
+        <div class="header">
+            <div>
+                <h1>Instana SDK Lab</h1>
+                <p>Java 8 · JAX-RS · H2 JDBC · JBoss EAP WAR</p>
+            </div>
+            <div class="status" id="health">checking</div>
+        </div>
+
+        <form id="traceForm" class="form">
+            <label>
+                Order ID
+                <input id="orderId" value="ORD-1001" autocomplete="off">
+            </label>
+            <label>
+                Customer ID
+                <input id="customerId" value="CUST-88" autocomplete="off">
+            </label>
+            <label>
+                Scenario
+                <select id="scenario">
+                    <option value="normal">normal</option>
+                    <option value="slow-query">slow-query</option>
+                    <option value="business-error">business-error</option>
+                    <option value="system-error">system-error</option>
+                    <option value="random-error">random-error</option>
+                </select>
+            </label>
+            <button type="submit">Run Trace</button>
+        </form>
+
+        <div class="metrics">
+            <div>
+                <span>HTTP</span>
+                <strong id="httpStatus">-</strong>
+            </div>
+            <div>
+                <span>Elapsed</span>
+                <strong id="elapsed">-</strong>
+            </div>
+            <div>
+                <span>JDBC</span>
+                <strong id="query">-</strong>
+            </div>
+            <div>
+                <span>Trace</span>
+                <strong id="trace">-</strong>
+            </div>
+        </div>
+
+        <pre id="output">{}</pre>
+    </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
