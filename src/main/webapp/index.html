@@ -12,18 +12,18 @@
         <div class="brand">
             <span class="brand-mark">IS</span>
             <div>
-                <h1>OrderOps</h1>
+                <h1>訂單營運中心</h1>
                 <p>Instana SDK Lab</p>
             </div>
         </div>
         <nav>
-            <button class="nav-item active" type="button">Orders</button>
-            <button class="nav-item" type="button">Fulfillment</button>
-            <button class="nav-item" type="button">Risk Queue</button>
-            <button class="nav-item" type="button">Audit Trail</button>
+            <button class="nav-item active" type="button">訂單作業</button>
+            <button class="nav-item" type="button">出貨管理</button>
+            <button class="nav-item" type="button">風險審核</button>
+            <button class="nav-item" type="button">稽核紀錄</button>
         </nav>
         <div class="runtime">
-            <span>Runtime</span>
+            <span>執行環境</span>
             <strong>JBoss 8 · Java 17</strong>
         </div>
     </aside>
@@ -31,10 +31,10 @@
     <section class="workspace">
         <header class="topbar">
             <div>
-                <h2>Order Command Center</h2>
-                <p>Run operational requests and inspect trace metadata.</p>
+                <h2>訂單指揮台</h2>
+                <p>執行真實感的訂單操作，觀察 HTTP、JDBC、錯誤與 Instana trace 資訊。</p>
             </div>
-            <div class="status" id="health">checking</div>
+            <div class="status" id="health">檢查中</div>
         </header>
 
         <section class="summary">
@@ -43,7 +43,7 @@
                 <strong id="httpStatus">-</strong>
             </div>
             <div>
-                <span>Elapsed</span>
+                <span>耗時</span>
                 <strong id="elapsed">-</strong>
             </div>
             <div>
@@ -51,7 +51,7 @@
                 <strong id="query">-</strong>
             </div>
             <div>
-                <span>Trace</span>
+                <span>追蹤</span>
                 <strong id="trace">-</strong>
             </div>
         </section>
@@ -59,22 +59,22 @@
         <section class="content-grid">
             <div class="panel operations">
                 <div class="panel-heading">
-                    <h3>Request Builder</h3>
+                    <h3>請求操作台</h3>
                     <span id="methodBadge">GET</span>
                 </div>
 
                 <form id="traceForm">
                     <div class="field-grid">
                         <label>
-                            Order ID
+                            訂單編號
                             <input id="orderId" value="ORD-1001" autocomplete="off">
                         </label>
                         <label>
-                            Customer ID
+                            客戶編號
                             <input id="customerId" value="CUST-88" autocomplete="off">
                         </label>
                         <label>
-                            Scenario
+                            模擬情境
                             <select id="scenario">
                                 <option value="normal">normal</option>
                                 <option value="slow-query">slow-query</option>
@@ -86,60 +86,60 @@
                     </div>
 
                     <div class="operation-list">
-                        <button class="operation active" type="button" data-method="GET" data-operation="retrieve">
+                        <button class="operation active" type="button" data-method="GET" data-operation="retrieve-workspace" data-path="workspace" data-label="查詢訂單工作區">
                             <span>GET</span>
-                            <strong>Retrieve order workspace</strong>
+                            <strong>查詢訂單工作區</strong>
                         </button>
-                        <button class="operation" type="button" data-method="POST" data-operation="submit">
+                        <button class="operation" type="button" data-method="POST" data-operation="submit-order" data-path="submission" data-label="送出新訂單">
                             <span>POST</span>
-                            <strong>Submit new order</strong>
+                            <strong>送出新訂單</strong>
                         </button>
-                        <button class="operation" type="button" data-method="PUT" data-operation="approve">
+                        <button class="operation" type="button" data-method="PUT" data-operation="approve-order" data-path="approval" data-label="核准出貨">
                             <span>PUT</span>
-                            <strong>Approve for fulfillment</strong>
+                            <strong>核准出貨</strong>
                         </button>
-                        <button class="operation" type="button" data-method="DELETE" data-operation="cancel">
+                        <button class="operation" type="button" data-method="DELETE" data-operation="cancel-order" data-path="cancellation" data-label="取消訂單">
                             <span>DELETE</span>
-                            <strong>Cancel order</strong>
+                            <strong>取消訂單</strong>
                         </button>
                     </div>
 
-                    <button id="runButton" class="primary-action" type="submit">Run Request</button>
+                    <button id="runButton" class="primary-action" type="submit">執行請求</button>
                 </form>
             </div>
 
             <div class="panel queue">
                 <div class="panel-heading">
-                    <h3>Live Order Queue</h3>
-                    <span>Mock data</span>
+                    <h3>即時訂單佇列</h3>
+                    <span>模擬資料</span>
                 </div>
                 <table>
                     <thead>
                     <tr>
-                        <th>Order</th>
-                        <th>Customer</th>
-                        <th>Status</th>
-                        <th>Risk</th>
+                        <th>訂單</th>
+                        <th>客戶</th>
+                        <th>狀態</th>
+                        <th>風險</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr data-order="ORD-1001" data-customer="CUST-88">
                         <td>ORD-1001</td>
                         <td>CUST-88</td>
-                        <td><span class="pill paid">PAID</span></td>
-                        <td>Low</td>
+                        <td><span class="pill paid">已付款</span></td>
+                        <td>低</td>
                     </tr>
                     <tr data-order="ORD-1002" data-customer="CUST-99">
                         <td>ORD-1002</td>
                         <td>CUST-99</td>
-                        <td><span class="pill pending">PENDING</span></td>
-                        <td>Review</td>
+                        <td><span class="pill pending">待審核</span></td>
+                        <td>需覆核</td>
                     </tr>
                     <tr data-order="ORD-1003" data-customer="CUST-77">
                         <td>ORD-1003</td>
                         <td>CUST-77</td>
-                        <td><span class="pill paid">PAID</span></td>
-                        <td>Low</td>
+                        <td><span class="pill paid">已付款</span></td>
+                        <td>低</td>
                     </tr>
                     </tbody>
                 </table>
@@ -148,8 +148,8 @@
 
         <section class="panel response-panel">
             <div class="panel-heading">
-                <h3>Response Payload</h3>
-                <span id="lastRequest">No request yet</span>
+                <h3>回應內容</h3>
+                <span id="lastRequest">尚未執行請求</span>
             </div>
             <pre id="output">{}</pre>
         </section>

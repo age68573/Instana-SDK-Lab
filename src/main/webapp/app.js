@@ -12,7 +12,9 @@
     var operations = document.querySelectorAll('.operation');
     var queueRows = document.querySelectorAll('tbody tr');
     var selectedMethod = 'GET';
-    var selectedOperation = 'retrieve';
+    var selectedOperation = 'retrieve-workspace';
+    var selectedPath = 'workspace';
+    var selectedLabel = '查詢訂單工作區';
 
     function apiBase() {
         var path = window.location.pathname;
@@ -25,7 +27,7 @@
         httpStatus.textContent = String(responseStatus);
         elapsed.textContent = body.elapsedMillis ? body.elapsedMillis + ' ms' : '-';
         query.textContent = body.queryMillis ? body.queryMillis + ' ms' : '-';
-        trace.textContent = body.traceActive ? 'active' : 'inactive';
+        trace.textContent = body.traceActive ? '啟用' : '未啟用';
     }
 
     function render(responseStatus, body) {
@@ -40,8 +42,10 @@
         button.className += ' active';
         selectedMethod = button.getAttribute('data-method');
         selectedOperation = button.getAttribute('data-operation');
+        selectedPath = button.getAttribute('data-path');
+        selectedLabel = button.getAttribute('data-label');
         methodBadge.textContent = selectedMethod;
-        runButton.textContent = selectedMethod + ' ' + selectedOperation;
+        runButton.textContent = '執行 ' + selectedMethod + '：' + selectedLabel;
     }
 
     function checkHealth() {
@@ -50,11 +54,11 @@
                 if (!response.ok) {
                     throw new Error('health check failed');
                 }
-                health.textContent = 'UP';
+                health.textContent = '正常';
                 health.className = 'status ok';
             })
             .catch(function () {
-                health.textContent = 'DOWN';
+                health.textContent = '異常';
                 health.className = 'status error';
             });
     }
@@ -79,10 +83,10 @@
         var orderId = encodeURIComponent(orderIdValue);
         var customerId = encodeURIComponent(customerIdValue);
         var scenario = encodeURIComponent(document.getElementById('scenario').value);
-        var url = apiBase() + '/orders/' + orderId + '?customerId=' + customerId + '&scenario=' + scenario;
+        var url = apiBase() + '/orders/' + orderId + '/' + selectedPath + '?customerId=' + customerId + '&scenario=' + scenario;
 
         runButton.disabled = true;
-        lastRequest.textContent = selectedMethod + ' /orders/' + orderIdValue;
+        lastRequest.textContent = selectedMethod + ' /orders/' + orderIdValue + '/' + selectedPath;
         fetch(url, {method: selectedMethod})
             .then(function (response) {
                 return response.json().then(function (body) {
@@ -98,5 +102,5 @@
     });
 
     checkHealth();
-    runButton.textContent = selectedMethod + ' ' + selectedOperation;
+    runButton.textContent = '執行 ' + selectedMethod + '：' + selectedLabel;
 }());

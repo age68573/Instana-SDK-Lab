@@ -37,7 +37,8 @@ public class LabApiServlet extends HttpServlet {
             return;
         }
         if (path.startsWith("/orders/")) {
-            handleOrder(request, response, path.substring("/orders/".length()), "GET", "retrieve");
+            OrderPath orderPath = parseOrderPath(path);
+            handleOrder(request, response, orderPath.orderId, "GET", orderPath.operation);
             return;
         }
         writeJson(response, HttpServletResponse.SC_NOT_FOUND, notFound(path));
@@ -66,6 +67,10 @@ public class LabApiServlet extends HttpServlet {
         body.put("application", "instana-sdk-lab");
         body.put("health", "/api/health");
         body.put("scenarios", "/api/scenarios");
+        body.put("retrieveWorkspace", "/api/orders/ORD-1001/workspace");
+        body.put("submitOrder", "/api/orders/ORD-1001/submission");
+        body.put("approveOrder", "/api/orders/ORD-1001/approval");
+        body.put("cancelOrder", "/api/orders/ORD-1001/cancellation");
         return JsonUtil.object(body);
     }
 
@@ -81,8 +86,8 @@ public class LabApiServlet extends HttpServlet {
         Map<String, Object> body = new LinkedHashMap<String, Object>();
         body.put("scenarios", Scenario.names());
         body.put("defaultScenario", Scenario.NORMAL.getCode());
-        body.put("example", "/api/orders/ORD-1001?customerId=CUST-88&scenario=slow-query");
-        body.put("methods", new String[]{"GET retrieve", "POST submit", "PUT approve", "DELETE cancel"});
+        body.put("example", "/api/orders/ORD-1001/workspace?customerId=CUST-88&scenario=slow-query");
+        body.put("methods", new String[]{"GET workspace", "POST submission", "PUT approval", "DELETE cancellation"});
         return JsonUtil.object(body);
     }
 
@@ -97,7 +102,8 @@ public class LabApiServlet extends HttpServlet {
                                     String httpMethod, String operation) throws IOException {
         String path = request.getPathInfo();
         if (path != null && path.startsWith("/orders/")) {
-            handleOrder(request, response, path.substring("/orders/".length()), httpMethod, operation);
+            OrderPath orderPath = parseOrderPath(path);
+            handleOrder(request, response, orderPath.orderId, httpMethod, orderPath.operation);
             return;
         }
         writeJson(response, HttpServletResponse.SC_NOT_FOUND, notFound(path));
@@ -106,10 +112,15 @@ public class LabApiServlet extends HttpServlet {
     private void handleOrder(HttpServletRequest request, HttpServletResponse response, String orderId,
                              String httpMethod, String operation) throws IOException {
         long startedAt = System.currentTimeMillis();
+        if (operation == null || operation.trim().length() == 0) {
+            operation = defaultOperation(httpMethod);
+        }
         String customerId = valueOrDefault(request.getParameter("customerId"), "CUST-100");
         Scenario scenario = Scenario.fromCode(valueOrDefault(request.getParameter("scenario"), "normal"));
 
         SpanSupport.annotate("http.method", httpMethod);
+        SpanSupport.annotate("http.route", "/api/orders/{orderId}/" + pathFromOperation(operation));
+        SpanSupport.annotate("request.name", httpMethod + " " + operation);
         SpanSupport.annotate("order.operation", operation);
         SpanSupport.annotate("order.id", orderId);
         SpanSupport.annotate("customer.id", customerId);
@@ -148,6 +159,62 @@ public class LabApiServlet extends HttpServlet {
         return orderService.retrieveWorklist(orderId, customerId, scenario);
     }
 
+    private OrderPath parseOrderPath(String path) {
+        String remainder = path.substring("/orders/".length());
+        int slash = remainder.indexOf('/');
+        if (slash < 0) {
+            return new OrderPath(remainder, null);
+        }
+        String orderId = remainder.substring(0, slash);
+        String operationPath = remainder.substring(slash + 1);
+        return new OrderPath(orderId, operationFromPath(operationPath));
+    }
+
+    private String operationFromPath(String operationPath) {
+        if ("workspace".equals(operationPath)) {
+            return "retrieve-workspace";
+        }
+        if ("submission".equals(operationPath)) {
+            return "submit-order";
+        }
+        if ("approval".equals(operationPath)) {
+            return "approve-order";
+        }
+        if ("cancellation".equals(operationPath)) {
+            return "cancel-order";
+        }
+        return operationPath;
+    }
+
+    private String pathFromOperation(String operation) {
+        if ("retrieve-workspace".equals(operation)) {
+            return "workspace";
+        }
+        if ("submit-order".equals(operation)) {
+            return "submission";
+        }
+        if ("approve-order".equals(operation)) {
+            return "approval";
+        }
+        if ("cancel-order".equals(operation)) {
+            return "cancellation";
+        }
+        return operation;
+    }
+
+    private String defaultOperation(String httpMethod) {
+        if ("POST".equals(httpMethod)) {
+            return "submit-order";
+        }
+        if ("PUT".equals(httpMethod)) {
+            return "approve-order";
+        }
+        if ("DELETE".equals(httpMethod)) {
+            return "cancel-order";
+        }
+        return "retrieve-workspace";
+    }
+
     private String error(String orderId, String customerId, Scenario scenario, String errorType, Exception exception) {
         Map<String, Object> body = new LinkedHashMap<String, Object>();
         body.put("status", "ERROR");
@@ -174,5 +241,15 @@ public class LabApiServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json;charset=UTF-8");
         response.getWriter().write(body);
+    }
+
+    private static class OrderPath {
+        private final String orderId;
+        private final String operation;
+
+        private OrderPath(String orderId, String operation) {
+            this.orderId = orderId;
+            this.operation = operation;
+        }
     }
 }
