@@ -1,6 +1,6 @@
 # AGENTS.md
 
-本文件提供給 Codex / AI coding agent 使用，目標是開發一個可部署在 JBoss EAP 的 Java 8 Web Application，用來展示 Instana Java SDK 的 method-level tracing、tag、fake query 與錯誤模擬能力。
+本文件提供給 Codex / AI coding agent 使用，目標是開發一個可部署在 JBoss 8 的 Java 17 Web Application，用來展示 Instana Java SDK 的 method-level tracing、tag、fake query 與錯誤模擬能力。
 
 ---
 
@@ -39,10 +39,10 @@ gh pr create --draft --base <base-branch> --head <branch> --title "<title>" --bo
 
 此應用程式需要：
 
-- 使用 Java 8。
+- 使用 Java 17。
 - 使用 Maven。
 - 產出 WAR 檔案。
-- 可部署到 JBoss EAP。
+- 可部署到 JBoss 8。
 - 使用 JAX-RS / Servlet 提供 Web API。
 - 使用 Instana Java SDK 標記 method-level trace。
 - 可以在 Instana UI 中看到各個主要 method 的執行時間。
@@ -57,15 +57,15 @@ gh pr create --draft --base <base-branch> --head <branch> --title "<title>" --bo
 
 ### Java
 
-- Java version：Java 8。
-- Source / Target：1.8。
-- 不可使用 Java 11+ 語法。
-- 不可使用 `jakarta.*`。
-- 必須使用 `javax.*`。
+- Java version：Java 17。
+- Source / Target：17。
+- 可使用 Java 17 語法，但應避免不必要的新語法以保持範例易讀。
+- 不可使用 `javax.*`。
+- 必須使用 `jakarta.*`。
 
 ### Application Server
 
-- 最終部署目標：JBoss EAP。
+- 最終部署目標：JBoss 8。
 - Packaging：WAR。
 - 不要使用 Spring Boot embedded Tomcat。
 - 不要假設應用程式會用 embedded server 執行。

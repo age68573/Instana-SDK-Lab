@@ -1,6 +1,6 @@
 # Instana SDK Lab
 
-Java 8 Maven WAR application for demonstrating Instana Java SDK method-level tracing, tags, JDBC traces, slow query simulation, and controlled error scenarios on JBoss EAP.
+Java 17 Maven WAR application for demonstrating Instana Java SDK method-level tracing, tags, JDBC traces, slow query simulation, and controlled error scenarios on JBoss 8 / Jakarta EE.
 
 ## Build
 
@@ -16,7 +16,7 @@ target/instana-sdk-lab.war
 
 ## Deploy
 
-Deploy `target/instana-sdk-lab.war` to JBoss EAP. The application uses JAX-RS at `/api` and serves the UI from the web application root.
+Deploy `target/instana-sdk-lab.war` to JBoss 8. The application serves API routes at `/api` and serves the UI from the web application root.
 
 Example endpoints:
 
