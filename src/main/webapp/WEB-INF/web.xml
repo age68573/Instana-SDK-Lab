@@ -6,27 +6,13 @@
 
     <display-name>Instana SDK Lab</display-name>
 
-    <context-param>
-        <param-name>javax.ws.rs.Application</param-name>
-        <param-value>com.example.instana.lab.InstanaLabApplication</param-value>
-    </context-param>
-
-    <context-param>
-        <param-name>resteasy.servlet.mapping.prefix</param-name>
-        <param-value>/api</param-value>
-    </context-param>
-
-    <listener>
-        <listener-class>org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap</listener-class>
-    </listener>
-
     <servlet>
-        <servlet-name>Resteasy</servlet-name>
-        <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
+        <servlet-name>LabApiServlet</servlet-name>
+        <servlet-class>com.example.instana.lab.api.LabApiServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>Resteasy</servlet-name>
+        <servlet-name>LabApiServlet</servlet-name>
         <url-pattern>/api/*</url-pattern>
     </servlet-mapping>
 </web-app>
