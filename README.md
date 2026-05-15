@@ -49,6 +49,8 @@ Supported scenarios:
 | --- | --- |
 | `normal` | Successful request with JDBC activity and method-level SDK spans. |
 | `slow-query` | Adds a slower JDBC workload so DB/query time is visible. |
+| `bad-query` | Runs an intentionally inefficient JDBC cross join so the database span is noticeably slower. |
+| `slow-method` | Makes `instana-sdk-lab.payment.authorize` run for more than 5 seconds. |
 | `business-error` | Returns HTTP 400 and tags the trace with business error metadata. |
 | `system-error` | Returns HTTP 500 and tags the trace with system error metadata. |
 | `random-error` | Randomly fails to create mixed successful and erroneous traces. |
@@ -88,6 +90,9 @@ Useful trace tags:
 - `error.message`
 - `db.rows`
 - `db.elapsed_ms`
+- `db.workload`
+- `slow.method`
+- `slow.threshold_ms`
 
 For failure demonstrations, HTTP 400 and HTTP 500 responses are intentional. They are useful for validating Instana error detection, trace filtering, and tags.
 
@@ -117,4 +122,7 @@ Restart the agent after updating the configuration.
 - `error.message`
 - `db.rows`
 - `db.elapsed_ms`
+- `db.workload`
+- `slow.method`
+- `slow.threshold_ms`
 - `payment.provider`

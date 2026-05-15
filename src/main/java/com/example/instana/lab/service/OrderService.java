@@ -152,7 +152,13 @@ public class OrderService {
     public String authorizePayment(@TagParam("order.id") String orderId,
                                    @TagParam("customer.id") String customerId,
                                    @TagParam("scenario") Scenario scenario) {
-        simulateWork(60L, 140L);
+        if (scenario == Scenario.SLOW_METHOD) {
+            SpanSupport.annotate("slow.method", "payment.authorize");
+            SpanSupport.annotate("slow.threshold_ms", "5000");
+            simulateWork(5200L, 5800L);
+        } else {
+            simulateWork(60L, 140L);
+        }
         SpanSupport.annotate("payment.provider", "fake-card-gateway");
         return "AUTHORIZED";
     }

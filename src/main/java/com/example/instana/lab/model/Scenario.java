@@ -3,6 +3,8 @@ package com.example.instana.lab.model;
 public enum Scenario {
     NORMAL("normal"),
     SLOW_QUERY("slow-query"),
+    BAD_QUERY("bad-query"),
+    SLOW_METHOD("slow-method"),
     BUSINESS_ERROR("business-error"),
     SYSTEM_ERROR("system-error"),
     RANDOM_ERROR("random-error");

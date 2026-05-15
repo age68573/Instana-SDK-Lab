@@ -92,6 +92,8 @@ public class OrderRepository {
             }
             if (scenario == Scenario.SLOW_QUERY) {
                 rows += runSlowJdbcWorkload();
+            } else if (scenario == Scenario.BAD_QUERY) {
+                rows += runBadJdbcWorkload();
             }
             return queryResult(rows, startedAt);
         } catch (SQLException e) {
@@ -130,6 +132,8 @@ public class OrderRepository {
 
             if (scenario == Scenario.SLOW_QUERY) {
                 rows += runSlowJdbcWorkload();
+            } else if (scenario == Scenario.BAD_QUERY) {
+                rows += runBadJdbcWorkload();
             }
 
             long elapsed = System.currentTimeMillis() - startedAt;
@@ -236,6 +240,7 @@ public class OrderRepository {
     }
 
     private int runSlowJdbcWorkload() throws SQLException {
+        SpanSupport.annotate("db.workload", "slow-query");
         int rows = 0;
         Connection connection = openConnection();
         try {
@@ -257,6 +262,34 @@ public class OrderRepository {
             connection.close();
         }
         sleep(900L);
+        return rows;
+    }
+
+    private int runBadJdbcWorkload() throws SQLException {
+        SpanSupport.annotate("db.workload", "bad-query-cross-join");
+        int rows = 0;
+        Connection connection = openConnection();
+        try {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT COUNT(*) AS TOTAL_ROWS " +
+                            "FROM SYSTEM_RANGE(1, 15000) A " +
+                            "CROSS JOIN SYSTEM_RANGE(1, 15000) B " +
+                            "WHERE MOD(A.X + B.X, 7919) = 0");
+            try {
+                ResultSet resultSet = statement.executeQuery();
+                try {
+                    if (resultSet.next()) {
+                        rows += resultSet.getInt("TOTAL_ROWS");
+                    }
+                } finally {
+                    resultSet.close();
+                }
+            } finally {
+                statement.close();
+            }
+        } finally {
+            connection.close();
+        }
         return rows;
     }
 
