@@ -35,6 +35,17 @@
         output.textContent = JSON.stringify(body, null, 2);
     }
 
+    function updateBrowserRoute(orderIdValue) {
+        var route = '#/requests/' + selectedMethod + '/orders/' + encodeURIComponent(orderIdValue) + '/' + selectedPath;
+        if (window.location.hash !== route) {
+            window.history.pushState(null, '', route);
+        }
+    }
+
+    function updateRequestLabel(orderIdValue) {
+        lastRequest.textContent = selectedMethod + ' /orders/' + orderIdValue + '/' + selectedPath;
+    }
+
     function setOperation(button) {
         for (var i = 0; i < operations.length; i++) {
             operations[i].className = operations[i].className.replace(' active', '');
@@ -46,6 +57,7 @@
         selectedLabel = button.getAttribute('data-label');
         methodBadge.textContent = selectedMethod;
         runButton.textContent = '執行 ' + selectedMethod + '：' + selectedLabel;
+        updateRequestLabel(document.getElementById('orderId').value);
     }
 
     function checkHealth() {
@@ -73,6 +85,7 @@
         queueRows[j].addEventListener('click', function () {
             document.getElementById('orderId').value = this.getAttribute('data-order');
             document.getElementById('customerId').value = this.getAttribute('data-customer');
+            updateRequestLabel(this.getAttribute('data-order'));
         });
     }
 
@@ -86,7 +99,8 @@
         var url = apiBase() + '/orders/' + orderId + '/' + selectedPath + '?customerId=' + customerId + '&scenario=' + scenario;
 
         runButton.disabled = true;
-        lastRequest.textContent = selectedMethod + ' /orders/' + orderIdValue + '/' + selectedPath;
+        updateRequestLabel(orderIdValue);
+        updateBrowserRoute(orderIdValue);
         fetch(url, {method: selectedMethod})
             .then(function (response) {
                 return response.json().then(function (body) {
